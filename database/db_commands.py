@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 # load_dotenv() ищет файл .env и загружает переменные, чтобы os.getenv их видел
 load_dotenv()
 
-async def add_client(telegram_id: int, name: str):
+async def add_client(telegram_id: int, name: str, phone: str = None):
     # Устанавливаем асинхронное соединение
     conn = await asyncpg.connect(
         user=os.getenv("DB_USER"),
@@ -17,12 +17,12 @@ async def add_client(telegram_id: int, name: str):
     
     # Запрос с плейсхолдерами $1, $2 — защита от взлома
     query = """
-    INSERT INTO clients (telegram_id, name) 
-    VALUES ($1, $2) 
-    ON CONFLICT (telegram_id) DO NOTHING
+    INSERT INTO clients (telegram_id, name, phone) 
+    VALUES ($1, $2, $3) 
+    ON CONFLICT (telegram_id) DO UPDATE SET phone = $3
     """
     
-    await conn.execute(query, telegram_id, name)
+    await conn.execute(query, telegram_id, name, phone)
     await conn.close() # Обязательно закрываем, чтобы не забить лимит соединений
     
 async def get_client(telegram_id: int):
