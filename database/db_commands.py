@@ -2,6 +2,7 @@ import asyncpg
 import asyncio
 import os
 from dotenv import load_dotenv
+from datetime import datetime
 
 # load_dotenv() ищет файл .env и загружает переменные, чтобы os.getenv их видел
 load_dotenv()
@@ -44,3 +45,18 @@ async def get_client(telegram_id: int):
     if row:
         return row['name']
     return None
+
+async def add_appointment(telegram_id: int, master_id: int, appointment_date):
+    conn = await get_db_connection()
+    
+    query = """
+        INSERT INTO appointments (client_id, master_id, appointment_date)
+        VALUES (
+            (SELECT id FROM clients WHERE telegram_id = $1),
+            $2, 
+            $3
+        )
+    """
+    
+    await conn.execute(query, telegram_id, master_id, appointment_date)
+    await conn.close()
