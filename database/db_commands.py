@@ -47,7 +47,12 @@ async def get_client(telegram_id: int):
     return None
 
 async def add_appointment(telegram_id: int, master_id: int, appointment_date):
-    conn = await get_db_connection()
+    conn = await asyncpg.connect(
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASS"),
+        host=os.getenv("DB_HOST"),
+        database=os.getenv("DB_NAME")
+    )
     
     query = """
         INSERT INTO appointments (client_id, master_id, appointment_date)
